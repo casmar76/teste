@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (cherry0) {
-                    rocket01 = rocket01.replace('[sclid]', cherry0).replace('%5Bssclid%5D', cherry0);
+                    rocket01 = rocket01.replace('[sclid]', cherry0).replace('%5Bsclid%5D', cherry0);
                 }
 
                 var nXzero = corvette.toString();
