@@ -1,45 +1,60 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     (function () {
-        var corvette = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Function to replace spaces with '_s_', dashes with '_d_', and remove slashes
+        const replaceSpacesAndDashes = (inputString) =>
+            inputString.replace(/ /g, '_s_').replace(/-/g, '_d_').replace(/\//g, '');
 
-        function power(ping) {
-            return ping.replace(/ /g, '_s_').replace(/-/g, '_d_');
+        // Store the gclid in local storage if present in the URL
+        if (urlParams.has('gclid')) {
+            const gclid = urlParams.get('gclid');
+            localStorage.setItem('gclid', gclid);
         }
 
-        if (corvette.has('tid')) {
-            var pong = corvette.get('tid');
-            var street = power(pong);
-            corvette.set('tid', street);
+        // Retrieve gclid from local storage if not in the URL
+        const gclid = urlParams.get('gclid') || localStorage.getItem('gclid');
+
+        // Get values of 'gclid', 'wbraid', 'msclkid', or 'fbclid' from the url parameters
+        const adCampaignId = gclid || urlParams.get('wbraid') || urlParams.get('msclkid') || urlParams.get('fbclid');
+        let modifiedCampaignId = adCampaignId;
+
+        // If 'tid' parameter exists, replace its value and set it back
+        if (urlParams.has('tid')) {
+            const originalTid = urlParams.get('tid');
+            const replacedTid = replaceSpacesAndDashes(originalTid);
+            urlParams.set('tid', replacedTid);
         }
 
-        var mango = corvette.get('gclid') || corvette.get('msclkid') || corvette.get('fbclid');
+        if (adCampaignId && urlParams.has('tid')) {
+            modifiedCampaignId = replaceSpacesAndDashes(adCampaignId);
+        }
 
-        if (corvette.toString()) {
-            var ciao01 = document.getElementsByTagName('a');
-            for (var bello02 = 0; bello02 < ciao01.length; bello02++) {
-                var winter = ciao01[bello02];
-                var summer = winter.hash;
-                var rocket01 = winter.href.split('#')[0];
-                var mellon = new URL(rocket01, document.location.href).searchParams;
+        // Create the updated URL parameters string once
+        const updatedUrlParamsString = urlParams.toString();
 
-                var cherry0 = mango;
+        if (updatedUrlParamsString) {
+            const pageLinks = document.querySelectorAll('a');
 
-                if (mellon.has('tid') && mango) {
-                    cherry0 = power(mango);
+            pageLinks.forEach((link) => {
+                const anchorHash = link.hash;
+                let linkHref = link.href.split('#')[0];
+
+                // Replace placeholders with the value of 'modifiedCampaignId' in the link
+                if (modifiedCampaignId) {
+                    linkHref = linkHref.replace('[sclid]', modifiedCampaignId).replace('%5Bsclid%5D', modifiedCampaignId);
                 }
 
-                if (cherry0) {
-                    rocket01 = rocket01.replace('[sclid]', cherry0).replace('%5Bsclid%5D', cherry0);
-                }
-
-                var nXzero = corvette.toString();
-                if (rocket01.indexOf('?') === -1) {
-                    rocket01 += '?' + nXzero;
+                // Append or update URL parameters in the link
+                if (!linkHref.includes('?')) {
+                    linkHref += '?' + updatedUrlParamsString;
                 } else {
-                    rocket01 += '&' + nXzero;
+                    linkHref += '&' + updatedUrlParamsString;
                 }
-                winter.href = rocket01 + summer;
-            }
+
+                // Update the href attribute of the link
+                link.href = linkHref + anchorHash;
+            });
         }
     })();
 });
